@@ -1,5 +1,5 @@
-#summary One-sentence summary of this page.
 #labels Featured
+#for now, the board have his own site.
 
 = Introduction =
 
@@ -8,7 +8,7 @@ Documentation and tutorials can be found on [http://sites.google.com/site/funlw6
 
 = Details =
 
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
+Get started with the board and jallib:
+  * [http://sites.google.com/site/funlw65/tutorials/getting-started-with-freejalduino-board Getting started with FreeJALduino board]
+  * [http://sites.google.com/site/funlw65/tutorials/freejalduino-with-jallib FreeJALduino with jallib]
+  
