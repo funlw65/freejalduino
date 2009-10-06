@@ -8,7 +8,7 @@ Documentation and tutorials can be found on [http://sites.google.com/site/funlw6
 
 = Details =
 
-Get started with the board and jallib:
+=== Get started with the board and jallib: ===
   * [http://sites.google.com/site/funlw65/tutorials/getting-started-with-freejalduino-board Getting started with FreeJALduino board]
   * [http://sites.google.com/site/funlw65/tutorials/freejalduino-with-jallib FreeJALduino with jallib]
   
