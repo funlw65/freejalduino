@@ -1,0 +1,334 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+	<meta name="description" content="Your description goes here" />
+	<meta name="keywords" content="your,keywords,goes,here" />
+	<meta name="author" content="Your Name" />
+	<link rel="stylesheet" type="text/css" href="1024px.css" title="1024px" media="screen,projection" />
+	<title>Software and drivers</title>
+	<script type="text/javascript" src="scripts/shCore.js"></script>
+	<script type="text/javascript" src="scripts/shBrushJalv2.js"></script>
+	<link type="text/css" rel="stylesheet" href="styles/shCore.css"/>
+	<link type="text/css" rel="stylesheet" href="styles/shThemeDefault.css"/>
+	<script type="text/javascript">
+		SyntaxHighlighter.config.clipboardSwf = 'scripts/clipboard.swf';
+		SyntaxHighlighter.all();
+	</script>
+</head>
+
+<body> 
+<div id="wrap">
+
+	<div id="header">
+		<p id="toplinks"><a href="langref.html">Language reference</a> | <a href="jallib.html">JAL Libraries</a> | <a href="boardsamples.html">Board examples</a></p>
+
+		<h1><img src="images/freeduino2.png" width="280"  alt="Example right-aligned image" class="right photo" /><a href="index.html">Free<span class="fade">JAL</span>duino5 board</a></h1>
+		<p id="slogan">in the Arduino spirit, version doc. 0.1</p>
+	</div>
+
+	<div id="content">
+
+		<h2>Software and drivers</h2>
+		<p class="timestamp">16 Apr, 2010 | Category: <a href="#">Tutorials</a> | Author: <a href="#">Vasi</a></p>
+
+
+		<h3>1. Forewords</h3>
+		<p>We will install the development chain needed to start programming our board and we will learn few tricks about bootloader.</p>
+
+
+
+		<h3>2. Copy the software from CD-ROM</h3>
+		<p>Just copy the entire  "<strong>\jal</strong>" directory from the CD-ROM to "<strong>C:\</strong>" so path to JAL will be "<strong>C:\jal</strong>". It needs to be there because all documentation will refer to that location (hope you are OK with this).  The main structure of the folder is:
+		</p>
+
+		<ul>
+			<li><img src="images/folder_orange_open.png" alt="" /> <strong>C:\jal</strong> - the main jal folder which contain also jal license</li>
+				<ul>
+					<li><img src="images/folder_orange_open.png" alt="" /> <strong>compiler</strong> - Jalv2 compiler maintained by Kyle (author)</li>
+					<li><img src="images/folder_orange_open.png" alt="" /> <strong>doc</strong> - compiler and language reference (including JAL API)</li>
+					<li><img src="images/folder_orange_open.png" alt="" /> <strong>jaledit</strong> -  the JAL IDE.</li>
+					<li><img src="images/folder_orange_open.png" alt="" /> <strong>lib</strong> - jallib libraries and device files</li>
+					<li><img src="images/folder_orange_open.png" alt="" /> <strong>Pdfsusb</strong> - Microchip application to upload .hex apps. on your board</li>
+					<li><img src="images/folder_orange_open.png" alt="" /> <strong>project</strong> - some projects as FreeJALduino and Serial LCD</li>
+					<li><img src="images/folder_orange_open.png" alt="" /> <strong>sample</strong> - the official samples for our micrcontroller(s)</li>
+					<li><img src="images/folder_orange_open.png" alt="" /> <strong>USBDrivers</strong> - for bootloader and USB CDC.</li>
+				</ul>
+		</ul>
+
+		<p>This is a reduced version of the official package. I removed everything not related to our microcontrollers (18F2550/18F4550).</p>
+
+		<h3>3. Configuring Jaledit</h3>
+		<p>Start JALEdit.exe from</p>
+		<p class="box">C:\jal\jaledit</p>
+		<p>folder and, from the main menu "<strong>Compile</strong>" choose "<strong>Environment Options</strong>" option. The dialog box must look like in this image:</p>
+
+		<p style="text-align:center;"><img src="images/opt.png" alt="" class="photo" /></p>
+		<p>Hope is clear and fields can be set as seen in this image. This is all you need to do, the IDE is ready to compile your files. The required options regarding to bootloader are included in <strong>freejalduino4.jal</strong> file as pragmas.</p>
+
+		<h3>4. Modifying and burning the bootloader</h3>
+
+		<p>This step require an already installed and working ICSP programmer. Still, an working solution will be presented as alternative to Pickit2 programmer at the end of this page. If you are ok with your current bootloader, then you can skip this (but is useful to continue reading).</p>
+
+		<p>Why touching the bootloader sources? <strong>First</strong>, the current bootloader is configured by default to wait 10 seconds before giving the control of an existing user application. <strong>Secondly</strong>, it have a pin configured as digital output to light a LED, signaling "Boot mode" or "Application run" situations. These two features can be changed or disabled. The waiting time cand be increased or lowered and LED signaling can be disabled, freeing a pin for either input or output operations, as you wish. <strong>The third</strong> reason of why you must look into source is the fact that here are defined microcontroller fuses and, if you decided that you don't need the bootloader (having a Pickit2), you can copy the fuses definitions and put them in the header of almost every program you can make for this board. This way you will get accustomed with the fuses without problems.</p>
+
+		<p>We will look at <strong>18f2550_usb_bootloader_autostart.jal</strong> file which can be found in: </p>
+
+		<p class="box">C:\jal\project\FreeJALduino\FreeJALduino5\bootloader</p>
+
+		<h4>4.a. The waiting time</h4>
+		<p>The waiting time between RESET and giving the control to user application.</p>
+		<p>The code starts at line 734. The comment inside explain everything - change the value as you wish.</p>
+
+<pre class="brush: jalv2;">
+		-- 22 counts per second, ~10 seconds wait => 220 ticks
+		-- if expired, then jump to user location
+		if t1_count > 220 then
+</pre>
+
+		<p>So, for 5 seconds wait, the value is 110.</p>
+
+		<h4>4.b. Disabling the LED indicator</h4>
+		<p>The code starts at line 711.</p>
+
+<pre class="brush: jalv2;">
+-- ====================================
+-- Start define LED boot mode indicator
+-- -comment it if you don't want it :)
+alias led is pin_A4
+alias led_direction is pin_A4_direction
+led_direction = OUTPUT
+led = HIGH
+-- end LED boot mode indicator
+-- ====================================
+</pre>
+
+		<p>The code starts at line 737.</p>
+<pre class="brush: jalv2;">
+-- ================================================================
+led = LOW -- LED boot mode indicator OFF (comment to disable)
+-- ================================================================
+</pre>
+
+<p>So, comment the lines 711, 712, 713, 714 and 737 and you just issued the RA4 pin (D2 pin on our board).</p>
+
+
+		<h4>4.c. Bootloader fuses</h4>
+		<p>The code starts at line 57.</p>
+
+<pre class="brush: jalv2;">
+-- fuses
+pragma target PLLDIV        P5          -- divide by 5 - 20MHZ_INPUT
+pragma target CPUDIV        P2          -- OSC1_OSC2_SRC_1_96MHZ_PLL_SRC_2
+pragma target USBPLL        F48MHZ      -- CLOCK_SRC_FROM_96MHZ_PLL_2
+pragma target OSC           HS_PLL
+pragma target FCMEN         DISABLED
+pragma target IESO          DISABLED
+pragma target PWRTE         DISABLED    -- power up timer
+pragma target VREGEN        ENABLED     -- USB voltage regulator
+pragma target VOLTAGE       V20         -- brown out voltage
+pragma target BROWNOUT      DISABLED    -- no brownout detection
+pragma target WDTPS         P32K        -- watch dog saler setting
+pragma target WDT           DISABLED    -- no watchdog
+pragma target CCP2MUX       pin_C1      -- CCP2 pin
+pragma target PBADEN        DIGITAL     -- digital input port<0..4>
+pragma target LPT1OSC       LOW_POWER   -- low power timer 1
+pragma target MCLR          EXTERNAL    -- master reset on RE3
+pragma target STVR          DISABLED    -- reset on stack over/under flow
+pragma target LVP           DISABLED    -- no low-voltage programming
+pragma target XINST         ENABLED     -- extended instruction set
+pragma target DEBUG         DISABLED    -- background debugging
+pragma target CP0           DISABLED    -- code block 0 not protected
+pragma target CP1           DISABLED    -- code block 1 not protected
+pragma target CP2           DISABLED    -- code block 2 not protected
+pragma target CP3           DISABLED    -- code block 3 not protected
+pragma target CPB           DISABLED    -- bootblock code not write protected
+pragma target CPD           DISABLED    -- eeprom code not write protected
+pragma target WRT0          DISABLED    -- table writeblock 0 not protected
+pragma target WRT1          DISABLED    -- table write block 1 not protected
+pragma target WRT2          DISABLED    -- table write block 2 not protected
+pragma target WRT3          DISABLED    -- table write block 3 not protected
+pragma target WRTB          DISABLED    -- bootblock not write protected
+pragma target WRTD          DISABLED    -- eeprom not write protected
+pragma target WRTC          DISABLED    -- config not write protected
+pragma target EBTR0         DISABLED    -- table read block 0 not protected
+pragma target EBTR1         DISABLED    -- table read block 1 not protected
+pragma target EBTR2         DISABLED    -- table read block 2 not protected
+pragma target EBTR3         DISABLED    -- table read block 3 not protected
+pragma target EBTRB         DISABLED    -- boot block not protected
+</pre>
+
+<p>These are the fuses definitions you must use in your applications if you don't use a bootloader but a programmer. You will learn in <a href="starters.html">this page</a> the general structure of a JAL application (program).</p>
+
+<p>Ok, this is all. After you did the modifications, you can compile the file and write the hex with the ICSP programmer (or remove the PIC and use a socketed programmer - see at the end of the page).</p>
+
+		<h3>5. Installing the drivers for bootloader</h3>
+
+		<p>Connect the board to the USB (green jumper can be in "USB power source" position <img src="images/jumpleft2.gif" alt="" /> if you don't use an external power adapter - both LED's are ON if blue jumper is set to left  <img src="images/jumpleft2.gif" alt="" /> ) and Windows will detect it and after a while, will ask you for the drivers. You must point to this folder:</p>
+
+		<p class="box"> "C:\jal\USBDrivers\MCHPUSB Custom Driver\MCHPUSB Driver\Release"</p>
+		<p>After installation, <strong>Pdfsusb.exe</strong> uploader should be able to detect your board.</p>
+
+		<h3>6. Compiling and uploading a test application to force USB-CDC drivers install</h3>
+		<p>We need a little project which use Serial USB (CDC) to force driver installation (other than the one required for bootloader). This project will use a resistive divider on RA0/AN0 (A0 on our board notation) pin where R1 = 10Kohms and R2 = 1Kohm allowing a maximum of 55Vcc as input (don't use the maximum). The application will calculate the voltage (we measure the voltage from adapter source or battery) using 32bit integer math and will send the value via USB to a terminal, along vith ADC value for verification purposes - I think is a little sooner to <a href="s_adcsample.html">explain the program</a> in detail; we use it only for driver installation. For this project we will need a Wall Power Adapter or a 9Vcc battery or 12Vcc battery form a RE project.</p>
+
+		<h4>6.a. Setting the board</h4>
+		<p>We must set the board (I'm using <a href="http://fritzing.org">Fritzing</a> for generating such schematics).</p>
+		<p style="text-align:center;"><img src="images/testing_board.png" alt="" class="photo" /> </p>
+		<ol>
+			<li>- set the <strong>green</strong> jumper to right (Power Adapter) <img src="images/jumpright2.gif" alt="" /></li>
+			<li>- set the <strong>blue</strong> jumper to left ("Boot mode" indicator - if you did not disabled it) <img src="images/jumpleft2.gif" alt="" /></li>
+			<li>- connect wires as seen in schematics</li>
+			<li>- connect the power adapter (both LED's are ON)</li>
+			<li>- connect usb cable</li>
+		</ol>
+
+
+		<h4>6.b. Compiling the program and generating the hex file</h4>
+		<p>Start Jaledit.exe and open the <strong>USB_ADC.jal</strong> file from </p>
+		<p class="box"> C:\jal\project\FreeJALduino\FreeJALduino5\examples</p>
+		<p>folder. Or see it bellow:</p>
+
+<pre class="brush: jalv2;">
+include freejalduino4 -- FreeJALduino4 pinout layer for the last board model
+
+-- include libraries
+include usb_serial
+include print
+include format
+include delay
+
+var dword Value
+var word AD_RESULT
+var word Volts
+const byte str1[] = " Volts\r\n"
+
+
+-- ==================================================
+-- PROGRAM START ------------------------------------
+-- ==================================================
+-- configure pins
+enable_digital_io() -- first, all pins set to digital
+
+
+-- now configure ADC constants
+const bit ADC_HIGH_RESOLUTION = true -- 10bit resolution
+const byte ADC_NVREF = 0 -- no voltage reference
+const byte ADC_NCHANNEL = 1 -- how many ADC channels we are using,
+                            -- always starting the count from A0 (RA0/AN0) pin
+                            -- This will automatically set A0 as analog input
+const word ADC_RSOURCE  = 909 -- impendance (R1*R2/(R1+R2)) in ohms
+-- then, load the ADC library
+include adc
+-- Initialize ADC
+adc_init()
+
+
+-- initialize the USB serial library
+usb_serial_init()
+
+-- start main loop
+forever loop
+  usb_serial_flush()
+  AD_RESULT = adc_read(0)
+
+  print_word_dec(usb_serial_data, AD_RESULT)
+  usb_serial_data = " "
+
+--Value = 537 * AD_RESULT        
+  Value = dword(537) * AD_RESULT -- one of the operands must be casted
+                                 -- as dword to trigger a 32bit integer math calculation
+  Volts = Value / 100
+  
+  format_word_dec(usb_serial_data, Volts, 4, 2)
+  print_string(usb_serial_data, str1)
+  
+end loop
+--
+</pre>
+		<p>Select "Compile" option from the "Compile" main menu, or just press F9 key. Look at compilation messages and if everything is ok, you obtained the hex file in the same folder with source file.</p>
+
+		<h4>6.c. Uploading the program on board</h4>
+		<p>Next, open Pdfsusb.exe Microchip application from</p>
+		<p class="box"> C:\jal\Pdfsusb</p>
+		<p>folder. Because our user space is empty, the bootloader will not try to give control to user application, will stay in "Boot mode" indefinitely so, we don't need to rush. Select the combo box and you should see "<strong>PICDEM FS USB 0 (boot)</strong>". Select it and board is ready to receive your program. In common conditions, when you have a previous user application, from the RESET bootloader has started counting and if you don't select the board from the combo box within 10 seconds, bootloader will give control to your previous application. But when the selection is made, bootloader stops counting and awaits your program.</p> 
+		<p style="text-align:center;"><img src="images/select-board.gif" alt="" class="photo" /></p>
+		<p>Press "Load HEX file" button and choose USB_ADC.hex. You can see that the program starts from 0x800 address (000800).</p>
+		<p style="text-align:center;"><img src="images/hex_loaded.gif" alt="" class="photo" /></p>
+		<p>Press "Program Device" button and application will start to upload the hex file into your board. If everything is ok, you should get this message:</p>
+		<p style="text-align:center;"><img src="images/flashing_hex.gif" alt="" class="photo" /></p>
+		<p>Close Pdfsusb.exe application.</p>
+		
+		<h4>6.d. Running the application</h4>
+		<p>Now, you can RESET the board. After 10 seconds, the red LED will go OFF and after few seconds, Windows will discover that a virtual COM port have been connected to USB port. Windows will ask you about the driver and you must point to this folder:</p>
+		<p class="box"> C:\jal\USBDrivers\USB-CDC\inf\win2k_xp_vista32_64\</p>
+		<p>Start JALEdit.exe (if not started already) and select "<strong>Comm. Terminal...</strong>" from the "Tools" menu. A mini terminal will appear. Configure it for 115200 bps, select the COM terminal assigned by Windows to your board and you will see something like this:</p>
+		<p style="text-align:center;"><img src="images/term.jpg" alt="" class="photo" /></p>
+		<p>My battery voltage at night (solar system). First colum is ADC digital value and second column is voltage value.</p>
+		
+		<p>This is all! Now you have an working development chain.</p>
+
+		<h3>7. A viable (and at hand) alternative to Pickit2 programmer</h3>
+		<p>At least, you can make your own copy of Pickit2 programmer because you can program 18F2550, 18F4550 pics with this programmer. Or you can use it regularly if you use a 40pin ZIF socket (you need to resize the board accordingly). Jean-Pierre Mandon use this programmer for all his Pinguino boards. The programmer can be found on his page <a href="http://jmandon.free.fr/">here</a>.</p>
+
+		<p style="text-align:center;"><img src="images/jdmV2.jpg" alt="" class="photo" /></p>
+
+		<h3>8. What next?</h3>
+		<p>You can start digging in <a href="langref.html">JAL documentation</a> but you can try <a href="starters.html">this</a> first.</p>
+		
+	</div>
+
+	<div id="sidebar">
+		<h2>The Board</h2>
+		<ul>
+			<li><a href="index.html">- Description</a></li>
+			<li><a href="drivers.html">- Soft and drivers</a></li>
+		</ul>
+		
+		<h2>JAL</h2>
+		<ul>
+			<li><a href="langref.html">- Language reference</a></li>
+				<ul>
+					<li><a href="starters.html">- Jallib Starters Guide</a></li>
+					<li><a href="compileropt.html">- Compiler options</a></li>
+					<li><a href="pragmas.html">- JALv2 PRAGMA directives</a></li>
+				</ul>
+			<li><strong>- Board specific Libraries</strong></li>
+				<ul>
+					<li><a href="fjal4.html">- freejalduino4</a></li>
+					<li><a href="fjalmega.html">- freejalduinom3</a></li>
+				</ul>
+			
+			<li><a href="jallib.html">- JAL Libraries</a></li>
+		</ul>
+
+		<h2>Board samples</h2>
+		<ul>
+			<li><a href="boardsamples.html">- Samples for FreeJALduino5</a></li>
+		</ul>
+
+		<h2>Original samples</h2>
+		<ul>
+			<li><a href="jallibsamples.html">- Jallib Samples</a></li>
+		</ul>
+
+		<h2>Related links</h2>
+		<ul>
+			<li><a href="http://www.casadeyork.com/jalv2">- Jalv2 compiler and sources</a></li>
+			<li><a href="http://code.google.com/p/jallib/">- Jallib google code project</a></li>
+			<li><a href="http://groups.google.com/group/jallib">- Jallib forum (discussion list)</a></li>
+			<li><a href="http://justanotherlanguage.org">- Jallib new site</a></li>
+			<li><a href="http://jallib.blogspot.com">- Jallib old blog</a></li>
+			<li><a href="http://sites.google.com/site/funlw65">- FreeJALduino site</a></li>
+		</ul>
+
+	</div>
+
+	<div id="footer">
+		<p>Sample footer menu: <a href="langref.html">Language reference</a> | <a href="jallib.html">JAL libraries</a> | <a href="boardsamples.html">Board examples</a> | <a href="#header">Back to top</a><br />
+&copy; 2008 <a href="#">Your Name</a> | Template by: <a href="http://dogs.net/">Dogs</a>.net and Stylish <a href="http://www.stylishtemplate.com/">Website Templates</a></p>
+	</div>
+
+</div>
+</body>
+</html>

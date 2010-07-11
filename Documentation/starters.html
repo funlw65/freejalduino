@@ -1,0 +1,212 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+	<meta name="description" content="Your description goes here" />
+	<meta name="keywords" content="your,keywords,goes,here" />
+	<meta name="author" content="Your Name" />
+	<link rel="stylesheet" type="text/css" href="1024px.css" title="1024px" media="screen,projection" />
+	<title>Starters Guide</title>
+	<script type="text/javascript" src="scripts/shCore.js"></script>
+	<script type="text/javascript" src="scripts/shBrushJalv2.js"></script>
+	<script type="text/javascript" src="scripts/shBrushPlain.js"></script>
+	<link type="text/css" rel="stylesheet" href="styles/shCore.css"/>
+	<link type="text/css" rel="stylesheet" href="styles/shThemeDefault.css"/>
+	<script type="text/javascript">
+		SyntaxHighlighter.config.clipboardSwf = 'scripts/clipboard.swf';
+		SyntaxHighlighter.all();
+	</script>
+</head>
+
+<body>
+<div id="wrap">
+
+	<div id="header">
+		<p id="toplinks"><a href="langref.html">Language reference</a> | <a href="jallib.html">JAL Libraries</a> | <a href="boardsamples.html">Board examples</a></p>
+		<h1><img src="images/freeduino2.png" width="280"  alt="Example right-aligned image" class="right photo" /><a href="index.html">Free<span class="fade">JAL</span>duino5 board</a></h1>
+		<p id="slogan">in the Arduino spirit, version doc. 0.1</p>
+	</div>
+
+	<div id="content">
+		<h2>Jallib Starters Guide</h2>
+		<p class="timestamp">16 Apr, 2010 | Category: <a href="#">Tutorials</a> | Author: <a href="#">Vasi</a></p>
+		<p>Joep Suijs wrote an excelent "Starters Guide" which can be downloaded from <a href="http://code.google.com/p/jallib/">here</a> (see "Featured downloads" from the right sidebar). Also, at the same address, you can download another excellent book "Tutorial Book", with many nice projects. Both books are under heavy "development".</p>
+
+		<p>You <strong>must</strong> read them (at least, the "Starters Guide") but, what I want to show here, is the difference between a standalone program without bootloader and a program which use a bootloader, in both cases using FreeJALduino boards. Also it is supposing that in time you will gain new knowledge and you will want to write programs for your board but without the <strong>freejalduino4.jal</strong> library layout - using directly the pin definitions from jallib device files. So, we have three cases here and I will use a little example, as blinking a LED on <strong>RC2 pin</strong>, alias <strong>D13</strong> on my boards, and alias <strong>pin_C2</strong> on jallib device files.</p>
+		
+		<p>We will use the following image as stylesheet because offer the original pinout description and also my board pinout:</p>
+		<p style="text-align:center;"><img src="images/FreeJALduino4_pinout_silk.png" alt="" width="640"  /></p>
+		
+		<p>Again, all examples use the same board. We will use the red LED from the board so, <br />move the <strong>blue jumper to right</strong> <img src="images/jumpright2.gif" alt="" />. You will not need external power so move the <strong>green jumper to left</strong>, in "USB power source" mode <img src="images/jumpleft2.gif" alt="" />.</p>
+		
+		<h3>1. Blink a LED - no bootloader, using jallib device file only for pin definitions</h3>
+		<p>You will need to connect a Pickit2 or compatible to the ICSP connector of the board in order to program the board. The LED will start blinking instantly when you connect the board to USB.</p>
+<pre class="brush: jalv2;">
+include 18f2550
+-- even though the external crystal is 20 MHz, the configuration is such that
+-- the CPU clock is derived from the 96 Mhz PLL clock (div2), therefore set
+-- target frequency to 48 MHz
+pragma target clock 48000000  -- oscillator frequency
+-- now, fuses (this is a required step for any program which don't use a bootloader)
+pragma target PLLDIV        P5          -- divide by 5 - 20MHZ_INPUT
+pragma target CPUDIV        P2          -- OSC1_OSC2_SRC_1_96MHZ_PLL_SRC_2
+pragma target USBPLL        F48MHZ      -- CLOCK_SRC_FROM_96MHZ_PLL_2
+pragma target OSC           HS_PLL
+pragma target FCMEN         DISABLED
+pragma target IESO          DISABLED
+pragma target PWRTE         DISABLED    -- power up timer
+pragma target VREGEN        ENABLED     -- USB voltage regulator
+pragma target VOLTAGE       V20         -- brown out voltage
+pragma target BROWNOUT      DISABLED    -- no brownout detection
+pragma target WDTPS         P32K        -- watch dog saler setting
+pragma target WDT           DISABLED    -- no watchdog
+pragma target CCP2MUX       pin_C1      -- CCP2 pin
+pragma target PBADEN        DIGITAL     -- digital input port<0..4>
+pragma target LPT1OSC       LOW_POWER   -- low power timer 1
+pragma target MCLR          EXTERNAL    -- master reset on RE3
+pragma target STVR          DISABLED    -- reset on stack over/under flow
+pragma target LVP           DISABLED    -- no low-voltage programming
+pragma target XINST         ENABLED     -- extended instruction set
+pragma target DEBUG         DISABLED    -- background debugging
+pragma target CP0           DISABLED    -- code block 0 not protected
+pragma target CP1           DISABLED    -- code block 1 not protected
+pragma target CP2           DISABLED    -- code block 2 not protected
+pragma target CP3           DISABLED    -- code block 3 not protected
+pragma target CPB           DISABLED    -- bootblock code not write protected
+pragma target CPD           DISABLED    -- eeprom code not write protected
+pragma target WRT0          DISABLED    -- table writeblock 0 not protected
+pragma target WRT1          DISABLED    -- table write block 1 not protected
+pragma target WRT2          DISABLED    -- table write block 2 not protected
+pragma target WRT3          DISABLED    -- table write block 3 not protected
+pragma target WRTB          DISABLED    -- bootblock not write protected
+pragma target WRTD          DISABLED    -- eeprom not write protected
+pragma target WRTC          DISABLED    -- config not write protected
+pragma target EBTR0         DISABLED    -- table read block 0 not protected
+pragma target EBTR1         DISABLED    -- table read block 1 not protected
+pragma target EBTR2         DISABLED    -- table read block 2 not protected
+pragma target EBTR3         DISABLED    -- table read block 3 not protected
+pragma target EBTRB         DISABLED    -- boot block not protected
+
+-- delay library
+include delay
+
+enable_digital_io() -- all pins are now digital
+
+pin_C2_direction = OUTPUT -- set pin RC2 as output
+
+forever loop
+  pin_C2 = HIGH
+  delay_1ms(250) -- delay 250 milliseconds
+  pin_C2 = LOW
+  delay_1ms(250)
+end loop
+--
+</pre>
+		
+		<h3>2. Blink a LED - bootloader, using jallib device file only for pin definitions</h3>
+		<p>After uploading the program via USB using the bootloader, reset the board and LED will start blinking after 10 seconds.</p>
+<pre class="brush: jalv2;">
+include 18f2550
+-- even though the external crystal is 20 MHz, the configuration is such that
+-- the CPU clock is derived from the 96 Mhz PLL clock (div2), therefore set
+-- target frequency to 48 MHz
+pragma target clock 48000000  -- oscillator frequency
+-- now, fuses (this is a required step for any program which don't use a bootloader)
+pragma fuses no -- yes, no fuses, we use a bootloader
+-- Now we tell to compiler that the application use bootloader and must start at 0x0800
+pragma bootloader loader18
+
+-- delay library
+include delay
+
+enable_digital_io() -- all pins are now digital
+
+pin_C2_direction = OUTPUT -- set pin RC2 as output
+
+forever loop
+  pin_C2 = HIGH
+  delay_1ms(250) -- delay 250 milliseconds
+  pin_C2 = LOW
+  delay_1ms(250)
+end loop
+--
+</pre>
+
+		<h3>3. Blink a LED - bootloader, using FreeJALduino pin definitions</h3>
+		<p>After uploading the program via USB using the bootloader, reset the board and LED will start blinking after 10 seconds.</p>
+<pre class="brush: jalv2;">
+include freejalduino4 -- the board pinout definitions, PICtarget, clock and boot
+-- delay library
+include delay
+
+enable_digital_io() -- all pins are now digital
+
+D13_direction = OUTPUT -- set pin RC2/D13 as output
+
+forever loop
+  D13 = HIGH
+  delay_1ms(250) -- delay 250 milliseconds
+  D13 = LOW
+  delay_1ms(250)
+end loop
+--
+</pre>
+		
+		
+		<p class="box"><strong>Note:</strong> </p>
+	</div>
+
+	<div id="sidebar">
+		<h2>The Board</h2>
+		<ul>
+			<li><a href="index.html">- Description</a></li>
+			<li><a href="drivers.html">- Soft and drivers</a></li>
+		</ul>
+		
+		<h2>JAL</h2>
+		<ul>
+			<li><a href="langref.html">- Language reference</a></li>
+				<ul>
+					<li><a href="starters.html">- Jallib Starters Guide</a></li>
+					<li><a href="compileropt.html">- Compiler options</a></li>
+					<li><a href="pragmas.html">- JALv2 PRAGMA directives</a></li>
+				</ul>
+			<li><strong>- Board specific Libraries</strong>
+				<ul>
+					<li><a href="fjal4.html">- freejalduino4</a></li>
+					<li><a href="fjalmega.html">- freejalduinom3</a></li>
+				</ul>
+			</li>
+			<li><a href="jallib.html">- JAL Libraries</a></li>
+		</ul>
+
+		<h2>Board samples</h2>
+		<ul>
+			<li><a href="boardsamples.html">- Samples for FreeJALduino5</a></li>
+		</ul>
+
+		<h2>Original samples</h2>
+		<ul>
+			<li><a href="jallibsamples.html">- Jallib Samples</a></li>
+		</ul>
+
+		<h2>Related links</h2>
+		<ul>
+			<li><a href="http://www.casadeyork.com/jalv2">- Jalv2 compiler and sources</a></li>
+			<li><a href="http://code.google.com/p/jallib/">- Jallib google code project</a></li>
+			<li><a href="http://groups.google.com/group/jallib">- Jallib forum (discussion list)</a></li>
+			<li><a href="http://justanotherlanguage.org">- Jallib new site</a></li>
+			<li><a href="http://jallib.blogspot.com">- Jallib old blog</a></li>
+			<li><a href="http://sites.google.com/site/funlw65">- FreeJALduino site</a></li>
+		</ul>
+
+	</div>
+
+	<div id="footer">
+		<p>Sample footer menu: <a href="langref.html">Language reference</a> | <a href="jallib.html">JAL libraries</a> | <a href="boardsamples.html">Board examples</a> | <a href="#header">Back to top</a><br />
+&copy; 2008 <a href="#">Your Name</a> | Template by: <a href="http://dogs.net/">Dogs</a>.net and Stylish <a href="http://www.stylishtemplate.com/">Website Templates</a></p>
+	</div>
+
+</div>
+</body>
+</html>
