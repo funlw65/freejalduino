@@ -1,0 +1,282 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+	<meta name="description" content="Your description goes here" />
+	<meta name="keywords" content="your,keywords,goes,here" />
+	<meta name="author" content="Your Name" />
+	<link rel="stylesheet" type="text/css" href="1024px.css" title="1024px" media="screen,projection" />
+	<title>USB ADC</title>
+	<script type="text/javascript" src="scripts/shCore.js"></script>
+	<script type="text/javascript" src="scripts/shBrushJalv2.js"></script>
+	<script type="text/javascript" src="scripts/shBrushPlain.js"></script>
+	<link type="text/css" rel="stylesheet" href="styles/shCore.css"/>
+	<link type="text/css" rel="stylesheet" href="styles/shThemeDefault.css"/>
+	<script type="text/javascript">
+		SyntaxHighlighter.config.clipboardSwf = 'scripts/clipboard.swf';
+		SyntaxHighlighter.all();
+	</script>
+</head>
+
+<body>
+<div id="wrap">
+
+	<div id="header">
+		<p id="toplinks"><a href="langref.html">Language reference</a> | <a href="jallib.html">JAL Libraries</a> | <a href="boardsamples.html">Board examples</a></p>
+		<h1><img src="images/freeduino2.png" width="280"  alt="Example right-aligned image" class="right photo" /><a href="index.html">Free<span class="fade">JAL</span>duino5 board</a></h1>
+		<p id="slogan">in the Arduino spirit, version doc. 0.1</p>
+	</div>
+
+	<div id="content">
+		<h2>ADC value sent on USB</h2>
+		<p class="timestamp">16 Apr, 2010 | Category: <a href="#">Tutorials</a> | Author: <a href="#">Vasi</a></p>
+
+		<p>Few words about ADC pin selection and voltage measurement. There are two main groups of microcontrollers regarding to analog pin selection (Sebastien Lelong wrote a nice tutorial <a href="http://justanotherlanguage.org/content/jallib/tutorials/tutorial_adc_intro">here</a>):</p> 
+		
+		<h3>1. Analog dependent pin selection</h3>
+	
+		<p>The first group (an older one) have dependant analog pin selection. What mean that? If you select, by example, AN3 as analog input, all analog pins bellow it, become analog pins. Let's presume that we have only 4 pins at our disposal and all are mixed with analog channels:</p> 
+		
+		<pre class="brush: plain;">
+		  Pin name  
+		- RA0/AN0
+		- RA1/AN1
+		- RA2/AN2
+		- RA3/AN3
+		</pre>
+		
+		<p>One of them we need to use it as <strong>analog input</strong> and the other three as <strong>digital input</strong> to count events or as key handlers. If we select AN3 as analog input, then all lower pins which are mixed with analog channels become analog inputs making impossible to use the other three pins as digital input. So, in this case, you are forced to use RA0/AN0 as analog input and you can use RA1-RA3 pins as digital inputs. </p>
+
+		<p class="box"><strong>Note:</strong> As an observation, a pin selected to be <strong>analog input</strong> can be also <strong>digital output</strong> without any setup.</p>
+		
+		<p>Unfortunately, 18F2550/18F4550 microcontrollers are members of this group so, we have to take care when we design our electronics. This is an image from the datasheet about dependent analog pin selection:</p>
+		
+		<p style="text-align:center;"><img src="images/analog_table.png" width="640" alt="" class="photo" /></p>
+		
+		<p>AN5, AN6 and AN7 pins are available only on 18F4550 microcontrollers.</p>
+		<p>On FreeJALduino boards digital pins are noted as Dx and analog channels are noted as Ax, where x is the pin number regarding to Arduino notation.</p>
+		
+		<h3>2. Analog independent pin selection</h3>
+		
+		<p>Ok, the secong group permit independent analog input pin selection. This mean that we can select AN3 as analog input without affecting the status of the pins bellow him. Microchip has started modernizing his microcontrollers, offering new variants for any old model. I'm expecting the same thing for 18F2550/18F4550 microcontrollers.</p>
+		
+		<p>I will not insist on this, the Sebastien's tutorial covering very well the both cases.</p>
+		
+		<h3>3. Measuring volts with microcontrollers using 1024 bit resolution</h3>
+		
+		<p>Analog pins of 18F2550/18F4550 microcontrollers accept a <strong>maximum of 5Vcc</strong> as input voltage. For higher voltage we need to use a voltage divider. Also, the <strong>maximum impendance</strong> on analog inputs <strong>is 2.5 Kohms</strong>.</p>
+		
+		<h4>3.1. The voltage divider</h4>
+		
+		<p>We will use only a simple divider, based on this schematic:</p>
+		<p style="text-align:center;"><img src="images/voltagedivider.gif" alt="" /></p>
+		<p>The general formula is</p>
+    <p style="text-align:center;"><img src="images/formula.png" alt="" /></p>
+    <p>but for a complete reference, go to <a href="http://en.wikipedia.org/wiki/Voltage_divider">Wikipedia</a>. Anyway, if you are not good at math or tired of math calculations, try this <a href="http://raltron.com/cust/tools/voltage_divider.asp">online calculator</a>, is simple to use it.</p>
+    <p>To calculate the impendance, use this formula:</p>
+    <p><strong>Z=R1*R2/(R1+R2)</strong></p>
+    
+    <h3>4. A practical example</h3>
+    <p>It is the same example used when we forced USB-CDC <a href="drivers.html">driver installation</a> (see the chapter 6 from that page). So, we will continue with JAL program description. But first, a short resume. We planned to have a maximum of 55Vcc voltage to measure which must correspond to 5Vcc on ADC channel and we made calculations to obtain the values for R1 resistor (R1=10K) - use the online calculator for the three known values, Vin=55Vcc, Vout=5Vcc and R2=1K (1000 ohm). </p>
+    
+    <h4>4.1. The JAL program description </h4>
+    <p>USB_ADC.jal example can be found in</p>
+    <p class="box">C:\jal\project\FreeJALduino\FreeJALduino5\examples\</p>
+    <p>The application will measure voltage on A0 (our board definition for RA0/AN0) pin and will show on Windows terminal two values using USB Serial connection: the ADC digital value (which can have values from 0 to 1023) and the calculated Voltage value.</p>
+    
+    <pre class="brush: jalv2;">
+include freejalduino4 -- FreeJALduino4 pinout layer for the last board model
+-- include libraries
+include usb_serial
+include print
+include format
+include delay
+    </pre>
+    
+    <p><strong>The necessary libraries</strong> for our application: pinout layer definitions which also have processor, speed and pragma bootloader definitions, USB Serial library, print and format libraries for printing strings and formated numbers on terminal, and the one required for delays.</p>
+    
+    <pre class="brush: jalv2;">
+var dword Value
+var word AD_RESULT
+var word Volts
+-- var byte Millivolts
+const byte str1[] = " Volts\n\r"    
+    </pre>
+    
+    <p><strong>Variables and constant definitions</strong>. <strong>Value</strong> is a double word variable container which will store our primary voltage calculation (32bit integer math calculation - I really wanted to have this, although a 16bit math is possible and is doing faster). <strong>Volts</strong> variable will be used to display a formated value on Terminal. <strong>AD_RESULT</strong> store the ADC digital value.</p>
+
+    <pre class="brush: jalv2;">
+enable_digital_io() -- first, all pins set to digital
+    </pre>
+    
+    <p>This function is used to set all pins to digital and is a good starting point on every program you want to write. This is required because as default, all microcontroller pins which have analog channels assigned are set as analog inputs.</p>
+
+    <pre class="brush: jalv2;">
+const bit ADC_HIGH_RESOLUTION = true -- 10bit resolution
+const byte ADC_NVREF = 0 -- no voltage reference
+const byte ADC_NCHANNEL = 1 -- how many ADC channels we are using,
+                            -- always starting the count from A0 (RA0/AN0)
+                            -- This will automatically set A0 as analog input
+const word ADC_RSOURCE  = 909 -- impendance in ohms (R1*R2/(R1+R2))    
+    </pre>
+    
+    <p>These constants are required by ADC library and define resolution, voltage reference, the number of analog inputs used and the impendance of the voltage divider, required by library to calculate the exact time for ADC aquisition (see Jallib API documentation). The constants must be defined before including the ADC library. Read the comments form the code</p>
+
+    <pre class="brush: jalv2;">
+-- then, load the ADC library
+include adc
+-- Initialize ADC
+adc_init()
+    </pre>
+    
+    <p>Finally, ADC library is included and initialization is made.</p>
+
+    <pre class="brush: jalv2;">
+-- initialize the USB serial library
+usb_serial_init()
+    </pre>
+    
+    <p>This will initialize the USB Serial connection. From this moment, you must "push" continuously the USB at a maximum time of 10ms interval. otherwise, the USB connection will be lost and Windows will report that your USB device is not working properly. All yyou can do is to reset the board and rewrite the application properly.</p>
+
+    <pre class="brush: jalv2;">
+-- start main loop
+forever loop
+    </pre>
+    
+    <p>We start the main loop where our real program is acting.</p>
+
+    <pre class="brush: jalv2;">
+  usb_serial_flush()
+    </pre>
+    
+    <p>This is how you keep USB connection alive when you don't have an USB activity (doing other operations than reading or writting on USB).</p>
+    
+    <pre class="brush: jalv2;">
+  AD_RESULT = adc_read(0)
+    </pre>
+    
+    <p>Start analog reading on A0 pin.</p>
+
+    <pre class="brush: jalv2;">
+  print_word_dec(usb_serial_data, AD_RESULT)
+  usb_serial_data = " "
+    </pre>
+    
+    <p>Print the ADC digital value on Terminal via USB.</p>
+
+    <pre class="brush: jalv2;">
+  -- Value = 537 * AD_RESULT
+    </pre>
+    
+    <p>Well, this is a disabled line but is here as reference. It was my first atempt on doing 32bit math but didn't worked because I didn't read the JAL documentation properly. There are two things to discuss about this disabled line:</p>
+    
+    <p><strong>The first thing: What mean "537" value and how I obtained it?</strong> I used a desktop calculator (not a PC) to obtain the required values. Ok, we have a maximum of 55Vcc which correspond to 1024 "divisions" on ADC. </p>
+    
+    <pre class="brush: plain;">
+    55 / 1024 = 0.053710938
+    </pre>
+    <p>I removed the zero values and kept the first three non zero values, and those are 537 (because we can't use floating point math). So, for a maximum of 1024 ADC digital value, we have:</p>
+    <pre class="brush: plain;">
+    537 * 1024 = 549888
+    </pre>
+    <p>We will divide this by 100 because we need a maximum of 4 digits starting from left to right</p>
+    <pre class="brush: plain;">
+    549888 / 100 = 5498.88
+    </pre>
+    <p>but we get only the integer part, 5498 which we display it as a formated string of 54.98 being our maimum calculated volt value. As you see, here is a little error but a convenient one.</p>
+
+    
+    <p><strong>The second thing: Why I had 16bit math instead of the required 32bit one?</strong> Is because how JALv2 compiler is working. When a math operation is requested, the compiler will not look at the type of variable container and not even at size of the numbers. It will look only at operands types to figure out if it will use an 8bit(biggest operand being byte type), 16bit(biggest operand being word type) or 32bit(biggest operand being dword type) math calculations and will choose the bigger type from them. If you specify an operand in clear numbers, without a named type, then his type is considered as being UNIVERSAL which is signed 32bit. If your both operands are specified in clear numbers, then you will have the required 32bit math. If only one operand is specified in clear numbers (UNIVERSAL type) and the other operand is a named type, then the UNIVERSAL operand will get the type of the second operand which will be considered the biggest type. So, the response to my question is simple. My frist operand was UNIVERSAL (clear numbers) but was changed to the type of the second operand because this was a typed one (AD_RESULT is a word type variable) which was considered the biggest type operand. As a direct result, having a 16bit math operation instead of the required 32bit one. Then, the correct line is ...</p>
+
+    <pre class="brush: jalv2;">
+  Value = dword(537) * AD_RESULT    </pre>
+    
+    <p>.. the above one :-D . This time, the first operand is casted as dword type and because is the biggest type from the two operands, a 32bit math operation is triggered. Understood? Well, I didn't from first time... Ah, almost forgot: we have only integer math operations.</p>
+
+    <pre class="brush: jalv2;">
+  Volts = Value / 100
+    </pre>
+    
+    <p>We shorten the value to a maximum of 4 digits which will be displayed as 99.99 formated number (maximum being 55.00 volts theoretically). To myself: Should I insert a protection against "Division by zero" error?</p>
+
+    <pre class="brush: jalv2;">
+  format_word_dec(usb_serial_data, Volts, 4, 2)
+  print_string(usb_serial_data, str1)
+    </pre>
+    
+    <p>We display the calculated Volt value as a formated string (as stated above).</p>
+
+    <pre class="brush: jalv2;">
+  for 100 loop -- delay 1 second (a little more than)
+    usb_serial_flush()
+    delay_1ms(10)
+  end loop
+    </pre>
+    
+    <p>I inserted one second delay just as an example on how to use such long delays without loosing the USB connection.</p>
+
+    <pre class="brush: jalv2;">
+end loop
+    </pre>
+    
+    <p>Closing the forever loop. Is also the end of the file but not the end of program which is executed forever, until no power or reset event.</p>
+    
+    <h3>Advices</h3>
+    <p>Always use a multimeter to measure your resistors to know the <strong>exact</strong> output voltage for accurate results. Never choose tight voltage ranges for your application. By example, I will never have a 55Vcc as a maximum value. My application is ranging between 10Vcc and a maximum of 19Vcc. The 12Vcc battery can have a voltage in 10Vcc-14.4Vcc range. My solar panel have a maximum of 19Vcc voltage and I expect the same from my wind turbine.</p>
+
+	</div>
+
+	<div id="sidebar">
+		<h2>The Board</h2>
+		<ul>
+			<li><a href="index.html">- Description</a></li>
+			<li><a href="drivers.html">- Soft and drivers</a></li>
+		</ul>
+		
+		<h2>JAL</h2>
+		<ul>
+			<li><a href="langref.html">- Language reference</a></li>
+				<ul>
+					<li><a href="starters.html">- Jallib Starters Guide</a></li>
+					<li><a href="compileropt.html">- Compiler options</a></li>
+					<li><a href="pragmas.html">- JALv2 PRAGMA directives</a></li>
+				</ul>
+			<li><strong>- Board specific Libraries</strong>
+				<ul>
+					<li><a href="fjal4.html">- freejalduino4</a></li>
+					<li><a href="fjalmega.html">- freejalduinom3</a></li>
+				</ul>
+			</li>
+			<li><a href="jallib.html">- JAL Libraries</a></li>
+		</ul>
+
+		<h2>Board samples</h2>
+		<ul>
+			<li><a href="boardsamples.html">- Samples for FreeJALduino5</a></li>
+		</ul>
+
+		<h2>Original samples</h2>
+		<ul>
+			<li><a href="jallibsamples.html">- Jallib Samples</a></li>
+		</ul>
+
+		<h2>Related links</h2>
+		<ul>
+			<li><a href="http://www.casadeyork.com/jalv2">- Jalv2 compiler and sources</a></li>
+			<li><a href="http://code.google.com/p/jallib/">- Jallib google code project</a></li>
+			<li><a href="http://groups.google.com/group/jallib">- Jallib forum (discussion list)</a></li>
+			<li><a href="http://justanotherlanguage.org">- Jallib new site</a></li>
+			<li><a href="http://jallib.blogspot.com">- Jallib old blog</a></li>
+			<li><a href="http://sites.google.com/site/funlw65">- FreeJALduino site</a></li>
+		</ul>
+
+	</div>
+
+	<div id="footer">
+		<p>Sample footer menu: <a href="langref.html">Language reference</a> | <a href="jallib.html">JAL libraries</a> | <a href="boardsamples.html">Board examples</a> | <a href="#header">Back to top</a><br />
+&copy; 2008 <a href="#">Your Name</a> | Template by: <a href="http://dogs.net/">Dogs</a>.net and Stylish <a href="http://www.stylishtemplate.com/">Website Templates</a></p>
+	</div>
+
+</div>
+</body>
+</html>

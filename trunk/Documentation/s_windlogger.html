@@ -1,0 +1,209 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+	<meta name="description" content="Your description goes here" />
+	<meta name="keywords" content="your,keywords,goes,here" />
+	<meta name="author" content="Your Name" />
+	<link rel="stylesheet" type="text/css" href="1024px.css" title="1024px" media="screen,projection" />
+	<title>Windmill controller/logger shield</title>
+	<script type="text/javascript" src="scripts/shCore.js"></script>
+	<script type="text/javascript" src="scripts/shBrushJalv2.js"></script>
+	<script type="text/javascript" src="scripts/shBrushPlain.js"></script>
+	<link type="text/css" rel="stylesheet" href="styles/shCore.css"/>
+	<link type="text/css" rel="stylesheet" href="styles/shThemeDefault.css"/>
+	<script type="text/javascript">
+		SyntaxHighlighter.config.clipboardSwf = 'scripts/clipboard.swf';
+		SyntaxHighlighter.all();
+	</script>
+</head>
+
+<body>
+<div id="wrap">
+
+	<div id="header">
+		<p id="toplinks"><a href="langref.html">Language reference</a> | <a href="jallib.html">JAL Libraries</a> | <a href="boardsamples.html">Board examples</a></p>
+		<h1><img src="images/freeduino2.png" width="280"  alt="Example right-aligned image" class="right photo" /><a href="index.html">Free<span class="fade">JAL</span>duino5 board</a></h1>
+		<p id="slogan">in the Arduino spirit, version doc. 0.1</p>
+	</div>
+
+	<div id="content">
+		<h2>Windmill controller/logger shield</h2>
+		<p class="timestamp">16 Apr, 2010 | Category: <a href="#">Tutorials</a> | Author: <a href="#">Vasi</a></p>
+		<p>We can build a Windmill controller and/or logger which monitor the charging regime and also can logg some data regarding to wind speed, windmill rpm and amps, battery voltage, solar panel volts and amps. The harware is heavly based on <a href="http://www.thebackshed.com/windmill/PicLog.asp">Piclog, Glenn's Windmill Picaxe logger</a>. </p>
+		
+		<h3>1. The Firmware (Jal program)</h3>
+		<p>The ADC stuff was presented <a href="s_adcsample.html">here</a> so, we are discussing about methods on counting pulses, with or without an USB connection.</p>
+		
+		<h4>1.a Counting pulses on positive edge</h4>
+		<p>On many high level pic programming languages (mainly, Basic languages) we have a specific function for counting pulses. It exist on Picaxe Basic, Proton Basic, Pic Basic, Oshonsoft Basic and probably on others which I'm not aware of them. In Jal we don't have such a function which is based on non-blocking delays. Fortunately, in official package is included a library named "timer0_isr_interval.jal" which is doing exactly that: non-blocking delays. In the header of this lib is included an example of how to set a non-blocking delay. </p>
+		
+		<p><strong>A non-USB example:</strong> </p>
+		
+		<pre class="brush: jalv2">
+-- Counting pulses on positive edge
+include freejalduino4.jal
+
+const timer0_isr_rate = 1000 -- 1 kHz isr rate 
+const DELAY_SLOTS = 1 -- we need only one delay at a time
+
+include timer0_isr_interval
+timer0_isr_init() -- init timer0 isr
+
+var bit flag
+var word counting -- if more than 65535 counts on 1 second expected,
+                      -- use dword type instead of word.
+
+enable_digital_io() -- all pins are now digital
+
+-- define on which pin we do counting
+D7_direction = INPUT
+
+flag = 0
+counting = 0
+
+forever loop
+  -- ======== start the counting procedure ========
+  -- start the delay of 1 second on first slot (which is 0)
+  set_delay(0, 1000)
+  repeat
+    if D7 == 1 then -- positive pulse on D7 pin
+      flag = 1     -- so, mark it to be counted when pulse will fall
+    elsif flag == 1 then -- now D7 is 0 (pulse fallen = complete) and if flag is set, we count the pulse
+      counting = counting + 1  -- counted! huray, we have a pulse!
+      flag = 0     -- ok, clean the flag to be ready for another rising pulse
+    end if
+  until check_delay(0) -- check the slot to see if delay expired
+  -- time expired, we erase the flag
+  flag = 0
+  -- ============= end the counting procedure ===============
+  
+  -- do something with counting variable and then reinitialize it
+  -- ok, did something (e.g., sent the value via serial or displayed on LCD)
+  counting = 0
+
+end loop
+		</pre>
+		<p>This is the "usual" method of counting pulses on positive edge. Is easy to modify it for the negative edge - an exercise for the reader?</p>
+
+		<p><strong>An USB example:</strong> Unfortunately, we will loose the USB connection (and the application will be blocked) if there is no activity for a maximum of 10 milliseconds pause. We need to deal with that. Bellow is my proposal. I will not go for a maximum of 10 millisecond delay because it is possible to loose the connection. I will "push" the USB at every 5ms and this is the interval for counting. I will count pulses on 5ms interval and repeat it 200 times to gather 1 second.</p>
+		
+		<pre class="brush: jalv2;">
+-- Counting pulses on positive edge
+include freejalduino4.jal
+include usb_serial
+include print
+
+const timer0_isr_rate = 1000 -- 1 kHz isr rate 
+const DELAY_SLOTS = 1 -- we need only one delay at a time
+
+include timer0_isr_interval
+timer0_isr_init() -- init timer0 isr
+
+var bit flag
+var word counting -- if more than 65535 counts on 1 second expected,
+                      -- use dword type instead of word.
+
+enable_digital_io() -- all pins are now digital
+
+-- define on which pin we do counting
+D7_direction = INPUT
+
+flag = 0
+counting = 0
+
+usb_serial_init()
+
+forever loop
+  usb_serial_flush()
+  -- ======== start the counting procedure ========
+  for 200 loop -- 5 * 200 = 1 second
+    -- start the delay of 5 milliseconds on first slot (which is 0)
+    set_delay(0, 5)
+    repeat
+      if D7 == 1 then -- positive pulse on D7 pin
+        flag = 1     -- so, mark it to be counted when pulse will fall
+      elsif flag == 1 then -- now D7 is 0 (pulse fallen = complete) and if flag is set, we count the pulse
+        counting = counting + 1 -- counted! huray, we have a pulse!
+        flag = 0     -- ok, clean the flag to be ready for another rising pulse
+      end if
+    until check_delay(0) -- check the slot to see if delay expired
+    usb_serial_flush() -- tell to the usb we are active
+  end loop
+  -- cycle ended, we erase the flag
+  flag = 0
+  -- ============= end the counting procedure ===============
+  
+  -- do something with counting variable and then reinitialize it
+  print_word_dec(usb_serial_data, counting)
+  -- use print_dword_dec() if counting exceed 65535
+  usb_serial_data = 13 -- cr
+  usb_serial_data = 10 -- lf
+  counting = 0
+
+end loop
+
+		</pre>
+		
+		<p>Why not a 10 millisecond delay? Well, we can try that anyway but is not about an exact delay as is a blocking one (delay_1ms(10)). We start the timer, we do other things then check if the timer has finished his counting. If you get over 10ms, then you may loose USB connection so, 5ms is better.</p>
+		
+		<h3>2. The Hardware</h3>
+		<p> -- not yet available --</p>
+
+		<p class="box"><strong>Note:</strong> </p>
+	</div>
+
+	<div id="sidebar">
+		<h2>The Board</h2>
+		<ul>
+			<li><a href="index.html">- Description</a></li>
+			<li><a href="drivers.html">- Soft and drivers</a></li>
+		</ul>
+		
+		<h2>JAL</h2>
+		<ul>
+			<li><a href="langref.html">- Language reference</a></li>
+				<ul>
+					<li><a href="starters.html">- Jallib Starters Guide</a></li>
+					<li><a href="compileropt.html">- Compiler options</a></li>
+					<li><a href="pragmas.html">- JALv2 PRAGMA directives</a></li>
+				</ul>
+			<li><strong>- Board specific Libraries</strong>
+				<ul>
+					<li><a href="fjal4.html">- freejalduino4</a></li>
+					<li><a href="fjalmega.html">- freejalduinom3</a></li>
+				</ul>
+			</li>
+			<li><a href="jallib.html">- JAL Libraries</a></li>
+		</ul>
+
+		<h2>Board samples</h2>
+		<ul>
+			<li><a href="boardsamples.html">- Samples for FreeJALduino5</a></li>
+		</ul>
+
+		<h2>Original samples</h2>
+		<ul>
+			<li><a href="jallibsamples.html">- Jallib Samples</a></li>
+		</ul>
+
+		<h2>Related links</h2>
+		<ul>
+			<li><a href="http://www.casadeyork.com/jalv2">- Jalv2 compiler and sources</a></li>
+			<li><a href="http://code.google.com/p/jallib/">- Jallib google code project</a></li>
+			<li><a href="http://groups.google.com/group/jallib">- Jallib forum (discussion list)</a></li>
+			<li><a href="http://justanotherlanguage.org">- Jallib new site</a></li>
+			<li><a href="http://jallib.blogspot.com">- Jallib old blog</a></li>
+			<li><a href="http://sites.google.com/site/funlw65">- FreeJALduino site</a></li>
+		</ul>
+
+	</div>
+
+	<div id="footer">
+		<p>Sample footer menu: <a href="langref.html">Language reference</a> | <a href="jallib.html">JAL libraries</a> | <a href="boardsamples.html">Board examples</a> | <a href="#header">Back to top</a><br />
+&copy; 2008 <a href="#">Your Name</a> | Template by: <a href="http://dogs.net/">Dogs</a>.net and Stylish <a href="http://www.stylishtemplate.com/">Website Templates</a></p>
+	</div>
+
+</div>
+</body>
+</html>

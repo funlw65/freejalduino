@@ -1,0 +1,308 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+	<meta name="description" content="Your description goes here" />
+	<meta name="keywords" content="your,keywords,goes,here" />
+	<meta name="author" content="Your Name" />
+	<link rel="stylesheet" type="text/css" href="1024px.css" title="1024px" media="screen,projection" />
+	<title>freejalduinom3.jal Library</title>
+	<script type="text/javascript" src="scripts/shCore.js"></script>
+	<script type="text/javascript" src="scripts/shBrushJalv2.js"></script>
+	<script type="text/javascript" src="scripts/shBrushPlain.js"></script>
+	<link type="text/css" rel="stylesheet" href="styles/shCore.css"/>
+	<link type="text/css" rel="stylesheet" href="styles/shThemeDefault.css"/>
+	<script type="text/javascript">
+		SyntaxHighlighter.config.clipboardSwf = 'scripts/clipboard.swf';
+		SyntaxHighlighter.all();
+	</script>
+</head>
+
+<body>
+<div id="wrap">
+
+	<div id="header">
+		<p id="toplinks"><a href="langref.html">Language reference</a> | <a href="jallib.html">JAL Libraries</a> | <a href="boardsamples.html">Board examples</a></p>
+		<h1><img src="images/freeduino2.png" width="280"  alt="Example right-aligned image" class="right photo" /><a href="index.html">Free<span class="fade">JAL</span>duino5 board</a></h1>
+		<p id="slogan">in the Arduino spirit, version doc. 0.1</p>
+	</div>
+
+	<div id="content">
+		<h2>freejalduinom3.jal Library</h2>
+		<p class="timestamp">16 Apr, 2010 | Category: <a href="#">Tutorials</a> | Author: <a href="#">Vasi</a></p>
+
+		<p>This library is used for <strong>FreeJALduino Mega 3c</strong> boards, based on 18F4550 and Arduino hardware design. It just redefine the 18F2550 pinout, in concordance with Arduino board notation. Can be found in</p>
+		
+		<p class="box">C:\jal\lib</p>
+		<p>I advise you to look at 18f4550.jal source to see the real pinout, registers and peripherals definitions</p>
+		
+<pre class="brush: jalv2">
+-- This library is made to help Arduino Language programmers to migrate
+-- to JAL language and Jallib library using FreeJALduino MEGA v3 board
+-- Is compatible backward
+-- with FreeJALduino v.4 board (28 pin, 18F2550)
+include 18f4550 -- target PICmicro
+-- even though the external crystal is 20 MHz, the configuration is such that
+-- the CPU clock is derived from the 96 Mhz PLL clock (div2), therefore set
+-- target frequency to 48 MHz
+pragma target clock 48000000  -- oscillator frequency
+-- Now we tell to compiler that the application use bootloader and must start at 0x0800
+pragma bootloader loader18
+-- And that this application does not use fuses (which are defined already in bootloader)
+pragma fuses no
+
+-- Pin definitions
+
+-- Analog inputs
+alias A0 is pin_A0
+alias A1 is pin_A1
+alias A2 is pin_A2
+alias A3 is pin_A3
+alias A4 is pin_A5
+alias A5 is pin_E0
+alias A6 is pin_E1
+alias A7 is pin_E2
+alias A8 is pin_B2
+alias A9 is pin_B3
+alias A10 is pin_B1
+alias A11 is pin_B4
+alias A12 is pin_B0
+--
+alias A0_direction is pin_A0_direction
+alias A1_direction is pin_A1_direction
+alias A2_direction is pin_A2_direction
+alias A3_direction is pin_A3_direction
+alias A4_direction is pin_A5_direction
+alias A5_direction is pin_E0_direction
+alias A6_direction is pin_E1_direction
+alias A7_direction is pin_E2_direction
+alias A8_direction is pin_B2_direction
+alias A9_direction  is pin_B3_direction
+alias A10_direction is pin_B1_direction
+alias A11_direction is pin_B4_direction
+alias A12_direction is pin_B0_direction
+
+
+-- Digital inputs/outputs
+alias D0 is pin_C7
+alias D1 is pin_C6
+alias D2 is pin_D7
+alias D3 is pin_B0
+alias D4 is pin_B1
+alias D5 is pin_B2
+alias D6 is pin_B3
+alias D7 is pin_B4
+alias D8 is pin_B5
+alias D9 is pin_B6
+alias D10 is pin_B7
+alias D11 is pin_C0
+alias D12 is pin_C1
+alias D13 is pin_C2
+alias D14 is pin_A0
+alias D15 is pin_A1
+alias D16 is pin_A2
+alias D17 is pin_A3
+alias D18 is pin_A5
+alias D19 is pin_E0
+alias D20 is pin_E1
+alias D21 is pin_E2
+alias D22 is pin_D6
+alias D23 is pin_D5
+alias D24 is pin_D4
+alias D25 is pin_D3
+alias D26 is pin_D2
+alias D27 is pin_D1
+alias D28 is pin_D0
+-- _direction
+alias D0_direction is pin_C7_direction
+alias D1_direction is pin_C6_direction
+alias D2_direction is pin_D7_direction
+alias D3_direction is pin_B0_direction
+alias D4_direction is pin_B1_direction
+alias D5_direction is pin_B2_direction
+alias D6_direction is pin_B3_direction
+alias D7_direction is pin_B4_direction
+alias D8_direction is pin_B5_direction
+alias D9_direction is pin_B6_direction
+alias D10_direction is pin_B7_direction
+alias D11_direction is pin_C0_direction
+alias D12_direction is pin_C1_direction
+alias D13_direction is pin_C2_direction
+alias D14_direction is pin_A0_direction
+alias D15_direction is pin_A1_direction
+alias D16_direction is pin_A2_direction
+alias D17_direction is pin_A3_direction
+alias D18_direction is pin_A5_direction
+alias D19_direction is pin_E0_direction
+alias D20_direction is pin_E1_direction
+alias D21_direction is pin_E2_direction
+alias D22_direction is pin_D6_direction
+alias D23_direction is pin_D5_direction
+alias D24_direction is pin_D4_direction
+alias D25_direction is pin_D3_direction
+alias D26_direction is pin_D2_direction
+alias D27_direction is pin_D1_direction
+alias D28_direction is pin_D0_direction
+
+
+
+-- Digital I/O procedures
+
+-- Setting a digital pin as input or output
+-- You also can set an analog pin as digital output
+-- Example:
+-- pinMode(D21_direction, OUTPUT)
+procedure pinMode(bit in out x, bit in y) is
+x = y
+end procedure
+
+-- Writting 0 or 1 to a digital pin
+-- Example:
+-- pinMode(D21_direction, OUTPUT)
+-- digitalWrite(D21, LOW) -- outputing 0 to Digital 21
+procedure digitalWrite(bit in out x, bit in y) is
+x = y
+end procedure
+
+-- Reading a digital pin value
+-- Example:
+-- var byte pin_value
+-- setMode(D22_direction, INPUT)
+-- pin_value = digitalRead(D22)
+function digitalRead(bit in x) return bit is
+var bit i
+i = x
+return i
+end function
+
+-- Analog Input functions
+-- This function is compatible with Arduino Language
+-- Anyway, you have a better alternative with original jallib libraries
+-- Example:
+-- var word pot_value
+-- setMode(A0_direction, INPUT)
+-- pot_value = analogRead(0)
+function analogRead(byte in channel) return word is
+var word result = 0
+ADCON0 = channel << 2
+ADCON1 = 14 - channel
+ADCON2 = 0xBE
+ADCON0_ADON = 1
+for 9 loop
+  assembler
+    NOP
+  end assembler
+end loop
+ADCON0_GO = 1
+while (ADCON0_GO) loop
+end loop
+result = ADRES
+ADCON0_ADON = 0
+return result
+end function
+
+
+-- Time
+
+-- See "delay.jal" file
+
+-- Math functions
+function min(dword in x, dword in y) return dword is
+if x < y then
+  return x
+else
+  return y
+end if
+end function
+
+function max(dword in x, dword in y) return dword is
+if x > y then
+  return x
+else
+  return y
+end if
+end function
+
+function constrain(dword in z, dword in x, dword in y) return dword is
+if z < x then
+  return x
+elsif z > y then
+  return y
+else
+  return z
+end if
+end function
+-- insert "include math.jal" line in your code
+-- to have acess to "sqrt16" and "sqrt32" functions
+
+-- Random Numbers
+
+-- jallib have "random.jal" file where you find three functions:
+-- function random_byte returns an 8-bit random number
+-- function random_word returns a 16-bit random number
+-- function dice         returns a number from 1 to 6
+-- so, you just insert following line in your code:
+-- include random.jal
+
+-- Communication
+
+-- You can find anything about serial and USB comm. in jallib libraries.
+</pre>
+
+		<p class="box"><strong>Note:</strong> </p>
+	</div>
+
+	<div id="sidebar">
+		<h2>The Board</h2>
+		<ul>
+			<li><a href="index.html">- Description</a></li>
+			<li><a href="drivers.html">- Soft and drivers</a></li>
+		</ul>
+		
+		<h2>JAL</h2>
+		<ul>
+			<li><a href="langref.html">- Language reference</a></li>
+				<ul>
+					<li><a href="starters.html">- Jallib Starters Guide</a></li>
+					<li><a href="compileropt.html">- Compiler options</a></li>
+					<li><a href="pragmas.html">- JALv2 PRAGMA directives</a></li>
+				</ul>
+			<li><strong>- Board specific Libraries</strong>
+				<ul>
+					<li><a href="fjal4.html">- freejalduino4</a></li>
+					<li><a href="fjalmega.html">- freejalduinom3</a></li>
+				</ul>
+			</li>
+			<li><a href="jallib.html">- JAL Libraries</a></li>
+		</ul>
+
+		<h2>Board samples</h2>
+		<ul>
+			<li><a href="boardsamples.html">- Samples for FreeJALduino5</a></li>
+		</ul>
+
+		<h2>Original samples</h2>
+		<ul>
+			<li><a href="jallibsamples.html">- Jallib Samples</a></li>
+		</ul>
+
+		<h2>Related links</h2>
+		<ul>
+			<li><a href="http://www.casadeyork.com/jalv2">- Jalv2 compiler and sources</a></li>
+			<li><a href="http://code.google.com/p/jallib/">- Jallib google code project</a></li>
+			<li><a href="http://groups.google.com/group/jallib">- Jallib forum (discussion list)</a></li>
+			<li><a href="http://justanotherlanguage.org">- Jallib new site</a></li>
+			<li><a href="http://jallib.blogspot.com">- Jallib old blog</a></li>
+			<li><a href="http://sites.google.com/site/funlw65">- FreeJALduino site</a></li>
+		</ul>
+
+	</div>
+
+	<div id="footer">
+		<p>Sample footer menu: <a href="langref.html">Language reference</a> | <a href="jallib.html">JAL libraries</a> | <a href="boardsamples.html">Board examples</a> | <a href="#header">Back to top</a><br />
+&copy; 2008 <a href="#">Your Name</a> | Template by: <a href="http://dogs.net/">Dogs</a>.net and Stylish <a href="http://www.stylishtemplate.com/">Website Templates</a></p>
+	</div>
+
+</div>
+</body>
+</html>
