@@ -3,6 +3,7 @@
 
 = Introduction =
 
+*New:* Documentation included as archive on Download section.
 Documentation and tutorials can be found on [http://sites.google.com/site/funlw65/ FreeJALduino] site.
 
 
