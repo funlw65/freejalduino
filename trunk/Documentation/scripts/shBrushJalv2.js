@@ -27,7 +27,7 @@
  * You should have received a copy of the GNU General Public License
  * along with SyntaxHighlighter.  If not, see <http://www.gnu.org/copyleft/lesser.html>.
  */
-SyntaxHighlighter.brushes.Jalv2 = function()
+dp.sh.Brushes.Jalv2 = function()
 {
 	var keywords =	'alias array as assembler at bit byte sbyte word sword dword sdword block ' +
 					'case char const do ' +
@@ -40,18 +40,24 @@ SyntaxHighlighter.brushes.Jalv2 = function()
 					'return repeat set shl shortint shortstring shr single smallint string then ' +
 					'target to true type until var while ' +
 					'with ';
-
+		
 	this.regexList = [
-		{ regex: /\(\*[\s\S]*?\*\)/gm,								css: 'comments' },  	// multiline comments (* *)
-		{ regex: /{(?!\$)[\s\S]*?}/gm,								css: 'comments' },  	// multiline comments { }
-		{ regex: /--.*$/gm,								css: 'comments' },  	// one line
-		{ regex: SyntaxHighlighter.regexLib.singleQuotedString,		css: 'string' },		// strings
-		{ regex: /\{\$[a-zA-Z]+ .+\}/g,								css: 'color1' },		// compiler Directives and Region tags
-		{ regex: /\b[\d\.]+\b/g,									css: 'value' },			// numbers 12345
-		{ regex: /\$[a-zA-Z0-9]+\b/g,								css: 'value' },			// numbers $F5D3
-		{ regex: new RegExp(this.getKeywords(keywords), 'gmi'),		css: 'keyword' }		// keyword
+		{ regex: new RegExp('\\(\\*[\\s\\S]*?\\*\\)', 'gm'),	css: 'comment' },  			// multiline comments (* *)
+		{ regex: new RegExp('{(?!\\$)[\\s\\S]*?}', 'gm'),			css: 'comment' },  			// multiline comments { }
+		{ regex: new RegExp('--.*$', 'gm'),	                  css: 'comment' }, // one line
+		{ regex: dp.sh.RegexLib.DoubleQuotedString,					  css: 'string' },			// strings
+		{ regex: new RegExp('\\{\\$[a-zA-Z]+ .+\\}', 'g'),		css: 'directive' },			// Compiler Directives and Region tags
+		{ regex: new RegExp('\\b[\\d\\.]+\\b', 'g'),				  css: 'number' },			// numbers 12345
+		{ regex: new RegExp('\\$[a-zA-Z0-9]+\\b', 'g'),				css: 'number' },			// numbers $F5D3
+		{ regex: new RegExp('\\0b[a-zA-Z0-9]+\\b', 'g'),				css: 'number' },			// numbers 0b0110		 
+		{ regex: new RegExp(this.GetKeywords(keywords), 'gm'),css: 'keyword' }			// keyword
 		];
-};
 
-SyntaxHighlighter.brushes.Jalv2.prototype	= new SyntaxHighlighter.Highlighter();
-SyntaxHighlighter.brushes.Jalv2.aliases	= ['jalv2', 'jallib', 'jal'];
+	this.CssClass = 'dp-jalv2';
+	this.Style =	'.dp-jalv2 .number { color: blue; }' +
+					'.dp-jalv2 .directive { color: #008284; }' +
+					'.dp-jalv2 .vars { color: #000; }';		
+
+};
+dp.sh.Brushes.Jalv2.prototype	= new dp.sh.Highlighter();
+dp.sh.Brushes.Jalv2.Aliases	= ['jalv2', 'jallib', 'jal'];
