@@ -1,1 +1,5 @@
 theme: jekyll-theme-midnight
+title: FreeJALduino board
+description: An alternative to Arduino board, featuring PIC18F2550 microcontroller.
+gems:
+- jemoji
